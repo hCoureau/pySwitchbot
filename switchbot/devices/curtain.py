@@ -328,3 +328,15 @@ class SwitchbotCurtain(SwitchbotBaseCover):
             touch_to_open=values.get("touchToOpen"),
             timestamps=timestamps,
         )
+
+    def get_fault(self) -> bool | None:
+        """Return the cached device fault flag, without inferring a cause."""
+        return self._basic_info.get("fault")
+
+    def get_touch_to_open(self) -> bool | None:
+        """Return cached Touch-to-Open state from a validated basic reply."""
+        return self._basic_info.get("touchToOpen")
+
+    def get_solar_panel_present(self) -> bool | None:
+        """Return cached solar-panel presence, independently of charging."""
+        return self._basic_info.get("solarPanel")

@@ -247,3 +247,16 @@ charging state and its raw code, plus per-page monotonic timestamps. Unobserved
 fields are `None`; failed reads preserve previous values and timestamps. For
 fields supplied by multiple pages, the newest page takes precedence. The
 primary battery/position APIs keep their existing semantics.
+
+### Fault and setting readback
+
+`get_fault()`, `get_touch_to_open()`, and `get_solar_panel_present()` return
+cached `bool | None` values from validated basic replies. They perform no
+Bluetooth I/O. Call `update()` or `refresh_diagnostics()` to read the device,
+and use the `basic` timestamp to assess freshness. Values remain unknown until
+observed; failed replies retain previous observations.
+
+The fault flag means only **device fault**. It does not identify a jam or
+obstruction and is distinct from a Bluetooth error or a rejected command.
+Solar-panel presence is independent of whether charging is occurring.
+Touch-to-Open writing requires a separately verified command and is not exposed.
