@@ -260,3 +260,7 @@ The fault flag means only **device fault**. It does not identify a jam or
 obstruction and is distinct from a Bluetooth error or a rejected command.
 Solar-panel presence is independent of whether charging is occurring.
 Touch-to-Open writing requires a separately verified command and is not exposed.
+
+The [Touch-to-Open verification procedure](docs/curtain-touch-to-open.md) explains
+which app captures are required before a setter can be added. No write command
+has been guessed or implemented.
