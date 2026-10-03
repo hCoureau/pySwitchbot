@@ -223,3 +223,27 @@ means hardware error. Unknown codes return `None` while retaining their raw valu
 
 The charging mapping follows the [published Curtain 3 BLE specification](https://github.com/OpenWonderLabs/SwitchBotAPI-BLE/blob/latest/devicetypes/curtain3.md).
 Hardware verification, including solar-equipped curtains, is still required.
+
+### Paired motor snapshots
+
+`curtain.motor_status` is a read-only mapping of chain slots `0` and `1` to
+immutable `CurtainMotorStatus` observations. Slots describe the current chain
+order, not persistent physical identities, left/right curtains, or MAC addresses.
+
+```python
+await curtain.refresh_diagnostics()
+for slot, status in curtain.motor_status.items():
+    print(slot, status.present, status.battery, status.charging_state)
+```
+
+Presence is determined from validated chain lengths, never from a nonzero
+battery or configuration byte. Zero-percent batteries and all-disabled settings
+remain valid observations. A confirmed removed motor has `present=False` and no
+retained measurements; conflicting basic and chain lengths produce unknown
+presence until they agree. Snapshots taken before a refresh remain unchanged.
+
+Each snapshot includes position, solar-panel presence, Touch-to-Open,
+charging state and its raw code, plus per-page monotonic timestamps. Unobserved
+fields are `None`; failed reads preserve previous values and timestamps. For
+fields supplied by multiple pages, the newest page takes precedence. The
+primary battery/position APIs keep their existing semantics.

@@ -5,11 +5,13 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from collections.abc import Mapping
+from types import MappingProxyType
 from typing import Any
 
 from bleak_retry_connector import BLEAK_RETRY_EXCEPTIONS
 
-from ..models import SwitchBotAdvertisement
+from ..models import CurtainMotorStatus, SwitchBotAdvertisement
 from .base_cover import COVER_COMMAND, COVER_EXT_SUM_KEY, SwitchbotBaseCover
 from .device import (
     REQ_HEADER,
@@ -286,3 +288,43 @@ class SwitchbotCurtain(SwitchbotBaseCover):
             _LOGGER.debug(
                 "%s: Optional diagnostic refresh failed", self.name, exc_info=True
             )
+
+    @property
+    def motor_status(self) -> Mapping[int, CurtainMotorStatus]:
+        """Return immutable cached observations for chain slots 0 and 1."""
+        length = self._get_chain_length() if self._chain_info else None
+        return MappingProxyType(
+            {slot: self._motor_snapshot(slot, length) for slot in (0, 1)}
+        )
+
+    def _motor_snapshot(self, slot: int, length: int | None) -> CurtainMotorStatus:
+        present = slot < length if length in (1, 2) else None
+        if present is not True:
+            return CurtainMotorStatus(present=present)
+        key = f"device{slot}"
+        pages = {
+            "basic": self._basic_info if slot == 0 else {},
+            "chain": self._chain_info.get(key, {}),
+            "summary": self.ext_info_sum.get(key, {}),
+            "advanced": self.ext_info_adv.get(key, {}),
+        }
+        timestamps = {
+            page: self.diagnostic_timestamps[page]
+            for page, data in pages.items()
+            if data and page in self.diagnostic_timestamps
+        }
+        ordered = sorted(timestamps, key=timestamps.get)
+        values = {}
+        for page in ordered:
+            values.update(pages[page])
+        advanced = pages["advanced"]
+        return CurtainMotorStatus(
+            present=True,
+            battery=values.get("battery"),
+            position=values.get("position"),
+            solar_panel_present=values.get("solarPanel"),
+            charging_state=advanced.get("chargingState"),
+            charging_state_raw=advanced.get("chargingStateRaw"),
+            touch_to_open=values.get("touchToOpen"),
+            timestamps=timestamps,
+        )

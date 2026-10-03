@@ -80,7 +80,7 @@ from .devices.smart_thermostat_radiator import SwitchbotSmartThermostatRadiator
 from .devices.universal_remote import SwitchbotUniversalRemote
 from .devices.vacuum import SwitchbotVacuum
 from .discovery import GetSwitchbotDevices
-from .models import SwitchBotAdvertisement
+from .models import CurtainMotorStatus, SwitchBotAdvertisement
 from .oauth import (
     OAUTH_AUTHORIZE_URL,
     OAUTH_SCOPE,
@@ -102,6 +102,7 @@ __all__ = [
     "ClimateMode",
     "ColorMode",
     "CurtainChargingState",
+    "CurtainMotorStatus",
     "FanMode",
     "GetSwitchbotDevices",
     "HorizontalOscillationAngle",
